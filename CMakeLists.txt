@@ -17,18 +17,20 @@
 # Builds the minimal Tensorflow Lite example.
 
 cmake_minimum_required(VERSION 3.16)
-project(minimal C CXX)
+project(inference_classification C CXX)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
+
+## could we not just add the location of what we need instead of rebuilding these all the time
 
 set(TENSORFLOW_SOURCE_DIR "" CACHE PATH
   "Directory that contains the TensorFlow project"
 )
 if(NOT TENSORFLOW_SOURCE_DIR)
   get_filename_component(TENSORFLOW_SOURCE_DIR
-    "${CMAKE_CURRENT_LIST_DIR}/../../../../"
+    "/home/kevin/repo/tensorflow" #"${CMAKE_CURRENT_LIST_DIR}/../../../../"
     ABSOLUTE
   )
 endif()
@@ -39,20 +41,17 @@ add_subdirectory(
   EXCLUDE_FROM_ALL
 )
 
+
+
+
 set(CMAKE_CXX_STANDARD 17)
-add_executable(minimal
-  minimal.cc
+
+add_executable(inference_classification
+  inference_classification.cc
+  aiInference.cc
 )
 
-add_executable(minimalInt
-  minimalInt.cc
-)
-
-target_link_libraries(minimal
+target_link_libraries(inference_classification
   tensorflow-lite
   ${OpenCV_LIBS} 
-)
-
-target_link_libraries(minimalInt
-  tensorflow-lite
-  ${OpenCV_LIBS})
+  )
