@@ -1,20 +1,28 @@
 # tfl_inference_classification
 
-This provides code to perform inference using the TensorFlow Lite C++ API. 
+This provides code performing inference and GradCam using the TensorFlow Lite C++ API. 
 
-It contains a AIInference class that you can use to perform inference using TF Lite models.
+Most of the example programs take a model and image as arguments.
 
-The code is based on some examples provided with the [TensorFlow source code](https://github.com/nxp-imx/tensorflow-imx/tree/lf-6.1.36_2.1.0/tensorflow/lite/examples/label_image). I took some inspiration from the label_image example.
+## AIInference Class
 
-## Start developing 
+Perform inference using TF Lite models.
 
-You will need to have the source code for TensorFlow and you should be able to compile it on your machine. For information: https://github.com/kevin-allen/phyBOARD/blob/main/tfl.md
+The models can be float32, uint8, or int8. 
 
+The code is loosely based on [examples in the TensorFlow source repository](https://github.com/nxp-imx/tensorflow-imx/tree/lf-6.1.36_2.1.0/tensorflow/lite/examples/label_image).
 
+## Compile these programs
+
+You will need to have the source code for TensorFlow somewhere on your computer for compilation. For information: https://github.com/kevin-allen/phyBOARD/blob/main/tfl.md
+
+### Clone the tfl_inference_classification repository
 ```
 cd ~/repo
 git clone https://github.com/kevin-allen/tfl_inference_classification.git
 ```
+
+### Adapt the build instructions to find the location of the tensorflow repository.
 
 Edit the CMakefile.txt to set the path to the tensorflow repository.
 
@@ -22,8 +30,7 @@ Edit the CMakefile.txt to set the path to the tensorflow repository.
 emacs CMakefile.txt
 ```
 
-
-## Compile
+### Compile
 
 ```
 cd ~/repo/tfl_inference_classification
@@ -33,4 +40,10 @@ cmake ..
 make
 ```
 
-The first compilation will take a while because CMake will recompile some of TensorFlow. The next time will be faster
+The first compilation will take a while because CMake will recompile some of TensorFlow. The next time will be faster.
+
+
+### Main programs
+
+1. classifiy_image
+2. 
