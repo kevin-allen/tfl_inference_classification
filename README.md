@@ -4,6 +4,11 @@ This provides code performing inference and GradCam using the TensorFlow Lite C+
 
 Most of the example programs take a model and image as arguments.
 
+# To do
+
+Organize the code so the inference code is re-usable (separate class).
+
+
 ## TF Lite Models
 
 You should prepare your models in Python, using TensorFlow. Once they work well, convert them to TensorFlow Lite.
