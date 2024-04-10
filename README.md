@@ -14,20 +14,23 @@ You will need to have the source code for TensorFlow and you should be able to c
 ```
 cd ~/repo
 git clone https://github.com/kevin-allen/tfl_inference_classification.git
-git clone 
-cd ~/repo/tensorflow/tensorflow/lite/examples/
-ln -s ~/repo/tfl_inference_classification/ . # will not compile if it is a symbolic link!!!!!
+```
+
+Edit the CMakefile.txt to set the path to the tensorflow repository.
+
+```
+emacs CMakefile.txt
 ```
 
 
 ## Compile
 
 ```
-cd ~/repo/tensorflow/tensorflow/lite/examples/tfl_inference_classification
+cd ~/repo/tfl_inference_classification
 mkdir build
 cd build
 cmake ..
 make
 ```
 
-The first compilation will take a while because CMake will recompile TensorFlow
+The first compilation will take a while because CMake will recompile some of TensorFlow. The next time will be faster
