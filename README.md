@@ -16,7 +16,7 @@ cd ~/repo
 git clone https://github.com/kevin-allen/tfl_inference_classification.git
 git clone 
 cd ~/repo/tensorflow/tensorflow/lite/examples/
-ln -s ~/repo/tfl_inference_classification/ .
+ln -s ~/repo/tfl_inference_classification/ . # will not compile if it is a symbolic link!!!!!
 ```
 
 
