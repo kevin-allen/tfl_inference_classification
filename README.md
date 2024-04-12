@@ -33,9 +33,17 @@ cd ~/repo
 git clone https://github.com/kevin-allen/tfl_inference_classification.git
 ```
 
+If you don't have the tensorflow source repository on your computer, clone it from GitHub.
+
+```
+git clone https://github.com/tensorflow/tensorflow.git
+```
+
 ### Adapt the build instructions to find the location of the tensorflow repository.
 
 Edit the CMakefile.txt to set the path to the tensorflow repository.
+
+In the repo, this points to `/home/kevin/repo/tensorflow`. Just change it to the location of the TensorFlow repository on your system.
 
 ```
 emacs CMakefile.txt
@@ -52,6 +60,21 @@ make
 ```
 
 The first compilation will take a while because CMake will recompile some of TensorFlow. The next time will be faster.
+
+### Test a program
+
+Download a TensorFlow Lite model from Google.
+
+```
+curl https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_2018_02_22/mobilenet_v1_1.0_224.tgz | tar xzv -C /tmp
+```
+
+Perform inference with the program `inference_classification`
+
+```
+cd ~/repo/tfl_inference_classification/build
+./inference_classification /tmp/mobilenet_v1_1.0_224.tflite /home/kevin/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp 
+```
 
 
 ### Main programs
