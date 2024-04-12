@@ -143,24 +143,18 @@ void AIInference::preprocessImage(){
     }
     
 
-    double min, max;
-    cv::minMaxLoc(image_, &min, &max);
-    std::cout << "Image min pixel value: " << min << std::endl;
-    std::cout << "Image max pixel value: " << max << std::endl;
+    cv::Scalar mean = cv::mean(image_);
+    std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
+
 
     // Resize the image
     std::cout << "Resize image to " << image_width << "x" << image_height << std::endl;
     cv::resize(image_, image_, cv::Size(image_width, image_height));
 
-
-
+  
     // Convert the image to RGB
-    //cv::cvtColor(resized_image, resized_image, cv::COLOR_BGR2RGB);
-
-    // show the image in a window
-    //cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-    //cv::imshow("Image", image_);
-    //cv::waitKey(0);
+    std::cout << "Convert image to RGB" << std::endl;
+    cv::cvtColor(image_, image_, cv::COLOR_BGR2RGB);
 
 
     // Convert the image to the right type
@@ -181,11 +175,47 @@ void AIInference::preprocessImage(){
         std::cerr << "Input_type: unknown" << std::endl;
         exit(1);
     }
+    
+    
+    // normalize the image
+    // this will depend on the model and dataset used to train it
+    switch(input_tensor_type){
+        case kTfLiteFloat32:
+        {
+            std::cout << "Normalize float image (x-127.5)/127.5" << std::endl;
+            float input_mean = 127.5f; // to compare to label_image.cc
+            float input_std = 127.5f;
+            for(int i=0; i < 224*224*3;i++){
+                image_.at<float>(i) = (image_.at<float>(i) - input_mean)/input_std;
+            }
 
-    //double min, max;
-    cv::minMaxLoc(image_, &min, &max);
-    std::cout << "Image min pixel value: " << min << std::endl;
-    std::cout << "Image max pixel value: " << max << std::endl;
+        }
+        break;
+        case kTfLiteUInt8:
+        {
+        std::cout << "!! No normalization of uint8 image" << std::endl;
+        }
+        break;
+        case kTfLiteInt8:
+        {
+        std::cout << "!! No normalization of int8 image" << std::endl;
+        }
+        break;
+        default:
+        std::cerr << "!! Input_type: unknown" << std::endl;
+        exit(1);
+    }
+
+
+    std::cout << "First pixel value: " << image_.at<cv::Vec3f>(0, 0) << std::endl;
+    // calculate the mean value for red, green and blue in the image
+    mean = cv::mean(image_);
+    std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
+    std::cout << "depth: " << image_.depth() << std::endl;
+    std::cout << "channels: " << image_.channels() << std::endl;
+    std::cout << "type: " << image_.type() << std::endl;
+    std::cout << "size: " << image_.size() << std::endl;
+
 
 }
 
@@ -200,15 +230,9 @@ void AIInference::copyImageToInputTensor(){
         case kTfLiteFloat32:
         {
         std::cout << "Copy image to input tensor of type float" << std::endl;
-        float* input = interpreter_->typed_input_tensor<float>(0);
-        // put our image in the model input
-        for (int i = 0; i < num_pixels; ++i) {
-          input[i] = image_.at<float>(i);
+        memcpy(interpreter_->typed_input_tensor<float>(0), image_.ptr<float>(0), 
+        image_width*image_height*3*sizeof(float));
         }
-        }
-        // not convinced this is the right way to do it, value in input_size_bytes is very small...
-        //memcpy(interpreter_->typed_input_tensor<float>(0), image_.data, input_tensor_size_bytes);
-
         break;
         case kTfLiteUInt8:
         {
@@ -252,9 +276,7 @@ void AIInference::copyResultTensorToResultArray(){
     switch (output_tensor_type) {
             case kTfLiteFloat32:
             {
-                float* output = interpreter_->typed_output_tensor<float>(0);
-                for(int i = 0; i < output_tensor_size; i++)
-                    resultArray[i] = output[i];
+                memcpy(resultArray, interpreter_->typed_output_tensor<float>(0), output_tensor_size*sizeof(float));
             }
             break;
             case kTfLiteInt8:
@@ -277,12 +299,14 @@ void AIInference::copyResultTensorToResultArray(){
         }
 
     float max_value = 0.0;
+    int max_index = 0;
     for (int i = 0; i < output_tensor_size; ++i) {
         if (resultArray[i] > max_value) {
             max_value = resultArray[i];
+            max_index = i;
         }
     }
-    std::cout << "Max value in the result array: " << max_value << std::endl;
+    std::cout << "Max value at index " << max_index << " in the result array: " << max_value << std::endl;
 
 }
 
