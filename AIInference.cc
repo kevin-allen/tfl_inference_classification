@@ -12,18 +12,23 @@
 AIInference::AIInference(std::string model_file){
     model_file_ = model_file;
     loadModel();
-    allocate_memory_for_result_array();
+    
 }
 
 AIInference::~AIInference(){
     std::cout << "Destroy AIInference object" << std::endl;
-    delete[] resultArray;
+    if (resultArray != nullptr)
+        delete[] resultArray;
 }
 
 void AIInference::allocate_memory_for_result_array(){
     // I wanted to get the results back to a float array, irrespective of the output tensor type.
     // Having a constant type simplifies the next steps.
-    
+    if (resultArray != nullptr) {
+        std::cout << "Freeing memory for the result array" << std::endl;
+        delete[] resultArray;
+    }
+
     // calculate the size of the output of the model
     int output =  interpreter_->outputs()[0];
     TfLiteIntArray* output_dims = interpreter_->tensor(output)->dims;    
@@ -106,6 +111,8 @@ void AIInference::loadModel(){
         break;
     }
     std::cout << "Output tensor size in bytes: " << output_tensor_size_bytes << std::endl;
+
+    allocate_memory_for_result_array();
 }
 
 
@@ -124,11 +131,10 @@ void AIInference::loadImage(std::string image_file){
         std::cerr << "Failed to load the image" << std::endl;
         exit(1);
     }
+
 }
 
 void AIInference::preprocessImage(){
-    
-    std::cout << "Preprocess the image for inference" << std::endl;
     
     // check that we have a valid image
     if (image_.empty()) {
@@ -136,27 +142,39 @@ void AIInference::preprocessImage(){
         exit(1);
     }
     
+
+    double min, max;
+    cv::minMaxLoc(image_, &min, &max);
+    std::cout << "Image min pixel value: " << min << std::endl;
+    std::cout << "Image max pixel value: " << max << std::endl;
+
     // Resize the image
     std::cout << "Resize image to " << image_width << "x" << image_height << std::endl;
     cv::resize(image_, image_, cv::Size(image_width, image_height));
 
 
+
     // Convert the image to RGB
     //cv::cvtColor(resized_image, resized_image, cv::COLOR_BGR2RGB);
 
+    // show the image in a window
+    //cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
+    //cv::imshow("Image", image_);
+    //cv::waitKey(0);
+
+
     // Convert the image to the right type
-    std::cout << "Convert the image to the right type" << std::endl;
     switch(input_tensor_type){
         case kTfLiteFloat32:
-        std::cout << "Transform image to float" << std::endl;
+        std::cout << "Convert image to float" << std::endl;
         image_.convertTo(image_, CV_32F);
         break;
         case kTfLiteUInt8:
-        std::cout << "Transform image to unsigned int8" << std::endl;
+        std::cout << "Convert image to unsigned int8" << std::endl;
         image_.convertTo(image_, CV_8U);
         break;
         case kTfLiteInt8:
-        std::cout << "Transform image to int8" << std::endl;
+        std::cout << "Convert image to int8" << std::endl;
         image_.convertTo(image_, CV_8S);
         break;
         default:
@@ -164,7 +182,7 @@ void AIInference::preprocessImage(){
         exit(1);
     }
 
-    double min, max;
+    //double min, max;
     cv::minMaxLoc(image_, &min, &max);
     std::cout << "Image min pixel value: " << min << std::endl;
     std::cout << "Image max pixel value: " << max << std::endl;
@@ -174,18 +192,45 @@ void AIInference::preprocessImage(){
 void AIInference::copyImageToInputTensor(){
     // Copy the image to the input tensor
 
+    int num_pixels = image_width*image_height*3;
+
+
+
     switch(input_tensor_type){
         case kTfLiteFloat32:
+        {
         std::cout << "Copy image to input tensor of type float" << std::endl;
-        memcpy(interpreter_->typed_input_tensor<float>(0), image_.data, input_tensor_size_bytes);
+        float* input = interpreter_->typed_input_tensor<float>(0);
+        // put our image in the model input
+        for (int i = 0; i < num_pixels; ++i) {
+          input[i] = image_.at<float>(i);
+        }
+        }
+        // not convinced this is the right way to do it, value in input_size_bytes is very small...
+        //memcpy(interpreter_->typed_input_tensor<float>(0), image_.data, input_tensor_size_bytes);
+
         break;
         case kTfLiteUInt8:
+        {
         std::cout << "Copy image to input tensor of type unsigned int8" << std::endl;
-        memcpy(interpreter_->typed_input_tensor<uint8_t>(0), image_.data, input_tensor_size_bytes);
+        uint8_t* input = interpreter_->typed_input_tensor<uint8_t>(0);
+        // put our image in the model input
+        for (int i = 0; i < num_pixels; ++i) {
+          input[i] = image_.at<uint8_t>(i);
+        }
+        }
+        //memcpy(interpreter_->typed_input_tensor<uint8_t>(0), image_.data, input_tensor_size_bytes);
         break;
         case kTfLiteInt8:
+        {
         std::cout << "Copy image to input tensor of type int8" << std::endl;
-        memcpy(interpreter_->typed_input_tensor<int8_t>(0), image_.data, input_tensor_size_bytes);
+        int8_t* input = interpreter_->typed_input_tensor<int8_t>(0);
+        // put our image in the model input
+        for (int i = 0; i < num_pixels; ++i) {
+          input[i] = image_.at<int8_t>(i);
+        }
+        }
+        //memcpy(interpreter_->typed_input_tensor<int8_t>(0), image_.data, input_tensor_size_bytes);
         break;
         default:
         std::cerr << "Input_type: unknown" << std::endl;

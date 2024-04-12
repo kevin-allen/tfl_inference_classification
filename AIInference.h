@@ -29,7 +29,7 @@ class AIInference{
         int nResults = 5;
         std::vector<std::pair<float, int>> top_results;
         float threshold = 0.001;
-        float* resultArray; // array to store the output of the model
+        float* resultArray = nullptr; // array to store the output of the model
         cv::Mat image_;
         void loadModel();
         void allocate_memory_for_result_array();
