@@ -176,9 +176,10 @@ void AIInference::preprocessImage(){
         exit(1);
     }
     
-    
-    // normalize the image
-    // this will depend on the model and dataset used to train it
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // Data normalization ///////////////////////////////////////////////////////////////////
+    // This step will depend on the model and how inputs were processed during training.  ///
+    /////////////////////////////////////////////////////////////////////////////////////////
     switch(input_tensor_type){
         case kTfLiteFloat32:
         {
@@ -188,7 +189,6 @@ void AIInference::preprocessImage(){
             for(int i=0; i < 224*224*3;i++){
                 image_.at<float>(i) = (image_.at<float>(i) - input_mean)/input_std;
             }
-
         }
         break;
         case kTfLiteUInt8:
