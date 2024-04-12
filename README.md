@@ -63,16 +63,19 @@ The first compilation will take a while because CMake will recompile some of Ten
 
 ### Test a program
 
- Get model
+Download a TensorFlow Lite model from Google.
 
 ```
 curl https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_2018_02_22/mobilenet_v1_1.0_224.tgz | tar xzv -C /tmp
 ```
 
+Perform inference with the program `inference_classification`
+
 ```
 cd ~/repo/tfl_inference_classification/build
 ./inference_classification /tmp/mobilenet_v1_1.0_224.tflite /home/kevin/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp 
 ```
+
 
 ### Main programs
 
