@@ -48,7 +48,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(inference_classification
   inference_classification.cc
-  aiInference.cc
+  AIInference.cc
 )
 
 target_link_libraries(inference_classification
