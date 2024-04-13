@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <functional>
 #include <queue>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
 
 #include "opencv2/opencv.hpp"
 
@@ -12,11 +15,9 @@
 AIInference::AIInference(std::string model_file){
     model_file_ = model_file;
     loadModel();
-    
 }
 
 AIInference::~AIInference(){
-    std::cout << "Destroy AIInference object" << std::endl;
     if (resultArray != nullptr)
         delete[] resultArray;
 }
@@ -34,10 +35,33 @@ void AIInference::allocate_memory_for_result_array(){
     TfLiteIntArray* output_dims = interpreter_->tensor(output)->dims;    
     // assume output dims to be something like (1, 1, ... ,size)
     output_tensor_size = output_dims->data[output_dims->size - 1]; // 
-
     // allocate memory for the result array (output of the network)
     resultArray = new float[output_tensor_size];
 }
+
+void AIInference::set_labels(std::string label_file){
+    // Check if the label file exists
+    label_file_= label_file;
+    if (!std::filesystem::exists(label_file_)) {
+        std::cerr << "Label file " << label_file_ << " does not exist" << std::endl;
+        exit(1);
+    }
+    // Load the label file
+    std::ifstream label_file_stream(label_file_);
+    if (!label_file_stream.is_open()) {
+        std::cerr << "Failed to open label file " << label_file_ << std::endl;
+        exit(1);
+    }
+    // Read the labels
+    std::string line;
+    while (std::getline(label_file_stream, line)) {
+        labels.push_back(line);
+    }
+    label_file_stream.close();
+    std::cout << "Loaded " << labels.size() << " labels" << std::endl;
+}
+
+
 
 // Write the loadModel function
 void AIInference::loadModel(){
@@ -86,7 +110,7 @@ void AIInference::loadModel(){
         exit(1);
         break;
     }  
-    std::cout << "Input tensor size in bytes: " << input_tensor_size_bytes << std::endl;
+    std::cout << "Input tensor size in bytes (seems wrong): " << input_tensor_size_bytes << std::endl;
 
     // Get output tensor details
     int output =  interpreter_->outputs()[0];
@@ -175,11 +199,14 @@ void AIInference::preprocessImage(){
         std::cerr << "Input_type: unknown" << std::endl;
         exit(1);
     }
-    
+}
+
+void AIInference::normalizeImage(){
     /////////////////////////////////////////////////////////////////////////////////////////
     // Data normalization ///////////////////////////////////////////////////////////////////
     // This step will depend on the model and how inputs were processed during training.  ///
     /////////////////////////////////////////////////////////////////////////////////////////
+    std::cout << "Normalize image" << std::endl;
     switch(input_tensor_type){
         case kTfLiteFloat32:
         {
@@ -207,15 +234,14 @@ void AIInference::preprocessImage(){
     }
 
 
-    std::cout << "First pixel value: " << image_.at<cv::Vec3f>(0, 0) << std::endl;
+    //std::cout << "First pixel value: " << image_.at<cv::Vec3f>(0, 0) << std::endl;
     // calculate the mean value for red, green and blue in the image
-    mean = cv::mean(image_);
-    std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
-    std::cout << "depth: " << image_.depth() << std::endl;
-    std::cout << "channels: " << image_.channels() << std::endl;
-    std::cout << "type: " << image_.type() << std::endl;
-    std::cout << "size: " << image_.size() << std::endl;
-
+    //cv::Scalar mean = cv::mean(image_);
+    //std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
+    //std::cout << "depth: " << image_.depth() << std::endl;
+    //std::cout << "channels: " << image_.channels() << std::endl;
+    //std::cout << "type: " << image_.type() << std::endl;
+    //std::cout << "size: " << image_.size() << std::endl;
 
 }
 
@@ -264,10 +290,26 @@ void AIInference::copyImageToInputTensor(){
 
 // Write the runInference function
 void AIInference::runInference(){
-      
+    
     // Run the inference
     std::cout << "Run inference" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     interpreter_->Invoke();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "First inference duration: " << duration.count()*1000 << " ms" << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    int repetitions = 10;
+    for(int i = 0; i < repetitions; i++){
+        interpreter_->Invoke();
+    }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    std::cout << "Average inference duration ("<<repetitions<<" rep): " << duration.count()*1000/repetitions << " ms" << std::endl;
+
+
+
 }
 
 void AIInference::copyResultTensorToResultArray(){
@@ -297,21 +339,10 @@ void AIInference::copyResultTensorToResultArray(){
             std::cerr << "cannot handle output type " << interpreter_->tensor(0)->type << " yet" << std::endl;
             exit(-1);
         }
-
-    float max_value = 0.0;
-    int max_index = 0;
-    for (int i = 0; i < output_tensor_size; ++i) {
-        if (resultArray[i] > max_value) {
-            max_value = resultArray[i];
-            max_index = i;
-        }
-    }
-    std::cout << "Max value at index " << max_index << " in the result array: " << max_value << std::endl;
-
 }
 
 
-void AIInference::get_top_results()
+void AIInference::getTopResults()
  {
     // Get the top N results and store in top_results
     
@@ -348,15 +379,36 @@ void AIInference::get_top_results()
         top_result_pq.pop();
     }
     std::reverse(top_results.begin(), top_results.end());
-
-    std::cout << "Top results above threshold:" << std::endl;
-    for (const auto& result : top_results) {
-        const float confidence = result.first;
-        const int index = result.second;
-        std::cout << "index: " << index << ", prob: " << confidence << std::endl;
-    }
-
  }
+
+void AIInference::printTopResults(){
+    // Print the top results
+    std::cout << std::fixed << std::setprecision(5);
+    if (labels.size() == 0) {
+        std::cout << "No labels loaded" << std::endl;
+        for (const auto& result : top_results) {
+            const float confidence = result.first;
+            const int index = result.second;
+            std::cout << "index: " << index << ", prob: " << confidence << std::endl;
+        }
+        return;
+    } else {
+
+        if (output_tensor_size != labels.size()) {
+            std::cerr << "Output tensor size does not match the number of labels" << std::endl;
+            exit(1);
+        }
+        for (const auto& result : top_results) {
+            const float confidence = result.first;
+            const int index = result.second;
+            std::cout << "index: " << index << ", prob: " << confidence << ", label: " << labels[index] << std::endl;
+
+        
+        }
+        return;
+    }
+}
+
 
 
 void AIInference::printInterpreterState(){

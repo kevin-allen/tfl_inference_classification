@@ -12,6 +12,17 @@
     * AIInference.h
     * Created on: 2024.04.12.
     * Class to perform inference using TF Lite models
+    Typical usage:
+    
+    AIInference ai_inference(model_file);
+    ai_inference.loadImage(image_file);
+    ai_inference.preprocessImage();
+    ai_inference.normalizeImage();
+    ai_inference.copyImageToInputTensor();
+    ai_inference.runInference();
+    ai_inference.copyResultTensorToResultArray();
+    ai_inference.get_top_results();
+
 */
 
 class AIInference{
@@ -27,6 +38,8 @@ class AIInference{
         int image_width = 224;
         int image_height = 224;
         int nResults = 5;
+        std::string label_file_;
+        std::vector<std::string> labels;
         std::vector<std::pair<float, int>> top_results;
         float threshold = 0.001;
         float* resultArray = nullptr; // array to store the output of the model
@@ -41,13 +54,16 @@ class AIInference{
     public:
         AIInference(std::string model_file);
         ~AIInference();
+        void set_labels(std::string label_file);
         void loadImage(std::string image_file);
         void preprocessImage();
+        void normalizeImage();
         void copyImageToInputTensor();
         void runInference();
         void printResults();
         void copyResultTensorToResultArray();
-        void get_top_results();
+        void getTopResults();
+        void printTopResults();
         
         void printInterpreterState();
         ;
