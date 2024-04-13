@@ -63,10 +63,15 @@ The first compilation will take a while because CMake will recompile some of Ten
 
 ### Test a program
 
-Download a TensorFlow Lite model from Google.
+Download a TensorFlow Lite model and labels from Google.
 
 ```
+# Get model
 curl https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_2018_02_22/mobilenet_v1_1.0_224.tgz | tar xzv -C /tmp
+
+# Get labels
+curl https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_1.0_224_frozen.tgz  | tar xzv -C /tmp  mobilenet_v1_1.0_224/labels.txt
+mv /tmp/mobilenet_v1_1.0_224/labels.txt /tmp/
 ```
 
 Perform inference with the program `inference_classification`
