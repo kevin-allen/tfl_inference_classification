@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
 
   std::string model_file = argv[optind];
   std::string image_file = argv[optind+1];
+
   std::cout << "Model: " << model_file << std::endl;
   std::cout << "Image: " << image_file << std::endl;
   if (with_l_opt){
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 
   // create an instance of AIInference
-  AIInference ai_inference(model_file);
+  AIInference ai_inference(model_file); // create an instance of AIInference and load the model into memory
   ai_inference.set_labels(label_file);
   ai_inference.loadImage(image_file);
   ai_inference.preprocessImage();
@@ -70,72 +71,5 @@ int main(int argc, char* argv[]) {
   ai_inference.copyResultTensorToResultArray();
   ai_inference.getTopResults();
   ai_inference.printTopResults();
-
-
-  /*
-  
-  
-
-
-
-
-  int output = interpreter->outputs()[0];
-  TfLiteType output_type = interpreter->tensor(output)->type;
-  int nResults = 5;
-  const float threshold = 0.001f;
-
-
-  TfLiteIntArray* output_dims = interpreter->tensor(output)->dims;
-
-  std::cout << "output_dims->size: " << output_dims->size << std::endl;
-
-  // assume output dims to be something like (1, 1, ... ,size)
-  auto output_size = output_dims->data[output_dims->size - 1];
-
-  std::cout << "output_size: " << output_size << std::endl;
-
-
-
-  std::vector<std::pair<float, int>> top_results;
-
-  std::cout << "calculating top results ..." << std::endl;
-  switch (output_type) {
-    case kTfLiteFloat32:
-    {
-      get_top_n<float>((float*) interpreter->typed_output_tensor<float>(0), 
-                        output_size,nResults, threshold, &top_results,output_type);
-    }
-      break;
-    case kTfLiteInt8:
-      get_top_n<int8_t>(interpreter->typed_output_tensor<int8_t>(0),
-                        output_size, nResults, threshold,
-                        &top_results, output_type);
-      break;
-    case kTfLiteUInt8:
-      get_top_n<uint8_t>(interpreter->typed_output_tensor<uint8_t>(0),
-                         output_size, nResults, threshold,
-                         &top_results, output_type);
-      break;
-    default:
-      std::cout << "cannot handle output type " << interpreter->tensor(0)->type << " yet" << std::endl;
-      exit(-1);
-  }
-
-
-
-
-
-
-
-  std::cout << "Top results above threshold:" << std::endl;
-  for (const auto& result : top_results) {
-    const float confidence = result.first;
-    const int index = result.second;
-    std::cout << "index: " << index << ", prob: " << confidence << std::endl;
-  }
-
-  */
-
-
   return 0;
 }
