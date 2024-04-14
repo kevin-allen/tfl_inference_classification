@@ -5,7 +5,7 @@
 #include <string>
 
 /*
-./inference_classification /tmp/mobilenet_v1_1.0_224.tflite /home/kevin/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp
+./inference_classification /tmp/mobilenet_v1_1.0_224.tflite ~/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp  -l /tmp/labels.txt 
 See https://github.com/kevin-allen/tfl_inference_classification/blob/main/README.md for more information
 */
   

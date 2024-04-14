@@ -181,6 +181,8 @@ void AIInference::preprocessImage(){
     cv::cvtColor(image_, image_, cv::COLOR_BGR2RGB);
 
 
+
+
     // Convert the image to the right type
     switch(input_tensor_type){
         case kTfLiteFloat32:
@@ -199,6 +201,9 @@ void AIInference::preprocessImage(){
         std::cerr << "Input_type: unknown" << std::endl;
         exit(1);
     }
+
+    mean = cv::mean(image_);
+    std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
 }
 
 void AIInference::normalizeImage(){
@@ -233,7 +238,8 @@ void AIInference::normalizeImage(){
         exit(1);
     }
 
-
+    cv::Scalar mean = cv::mean(image_);
+    std::cout << "Mean values from cv::mean(image_): " << mean << std::endl;
     //std::cout << "First pixel value: " << image_.at<cv::Vec3f>(0, 0) << std::endl;
     // calculate the mean value for red, green and blue in the image
     //cv::Scalar mean = cv::mean(image_);
