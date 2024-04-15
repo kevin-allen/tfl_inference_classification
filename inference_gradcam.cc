@@ -77,6 +77,11 @@ int main(int argc, char* argv[]) {
   aibc.runInference();
   aibc.copyResultTensorToResultArray();
 
+
+
+  // we might want a separate class for the classifier head that does gradcam
+
+
   // create an instance for our classification network
   // we can pretend it is a normal classifier model. The input has 2048 channels instead of 3. No preprocessing needed.
   // create an instance of AIInference
