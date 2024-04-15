@@ -84,5 +84,5 @@ cd ~/repo/tfl_inference_classification/build
 
 ### Main programs
 
-1. classifiy_image
+1. inference_classification
 2. 
