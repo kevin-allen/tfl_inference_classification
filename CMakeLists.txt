@@ -58,6 +58,20 @@ add_executable(inference_base_conv
   AIInferenceBaseConv.cc
 )
 
+add_executable(inference_base_conv_and_head
+  inference_base_conv_and_head.cc
+  AIInference.cc
+  AIInferenceClassification.cc
+  AIInferenceBaseConv.cc
+)
+
+add_executable(inference_gradcam
+  inference_gradcam.cc
+  AIInference.cc
+  AIInferenceClassification.cc
+  AIInferenceBaseConv.cc
+)
+
 
 
 
@@ -69,3 +83,14 @@ target_link_libraries(inference_base_conv
   tensorflow-lite
   ${OpenCV_LIBS} 
   )
+target_link_libraries(inference_base_conv_and_head
+  tensorflow-lite
+  ${OpenCV_LIBS} 
+  )
+target_link_libraries(inference_gradcam
+  tensorflow-lite
+  ${OpenCV_LIBS} 
+  )
+
+
+

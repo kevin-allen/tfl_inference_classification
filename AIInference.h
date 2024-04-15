@@ -28,8 +28,10 @@ class AIInference{
         std::unique_ptr<tflite::FlatBufferModel> model_;
         std::unique_ptr<tflite::Interpreter> interpreter_;
         TfLiteType input_tensor_type;
+        TfLiteIntArray* input_dims;
         size_t input_tensor_size_bytes;
         TfLiteType output_tensor_type;
+        TfLiteIntArray* output_dims;
         size_t output_tensor_size_bytes;
         int output_tensor_size;
         int image_width = 224;
@@ -46,6 +48,7 @@ class AIInference{
         void preprocessImage();
         void normalizeImage();
         void copyImageToInputTensor();
+        void setInputTensorFromBaseConvResultArray(float* resultArray);
         void runInference();
         void printInterpreterState();
 };

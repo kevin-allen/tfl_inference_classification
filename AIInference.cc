@@ -23,6 +23,7 @@ AIInference::~AIInference(){
 
 // Write the loadModel function
 void AIInference::loadModel(){
+    std::cout << "Load model: " << model_file_ << std::endl;
     // Check if the model file exists
     if (!std::filesystem::exists(model_file_)) {
         std::cerr << "Model file " << model_file_ << " does not exist" << std::endl;
@@ -48,10 +49,16 @@ void AIInference::loadModel(){
     // Allocate tensor buffers
     interpreter_->AllocateTensors();
 
-    // Get input tensor details
-    input_tensor_type = interpreter_->tensor(0)->type;
-    input_tensor_size_bytes = interpreter_->tensor(0)->bytes;
+    // Check how many inputs and outputs the model has
+    std::cout << "Number of inputs: " << interpreter_->inputs().size() << std::endl;
+    std::cout << "Number of outputs: " << interpreter_->outputs().size() << std::endl;
 
+    // Get input tensor details
+    int input =  interpreter_->inputs()[0];
+
+    input_tensor_type = interpreter_->tensor(input)->type;
+    input_tensor_size_bytes = interpreter_->tensor(input)->bytes;
+    input_dims = interpreter_->tensor(input)->dims;
     // Print input tensor details
     switch(input_tensor_type){
         case kTfLiteFloat32:
@@ -68,14 +75,19 @@ void AIInference::loadModel(){
         exit(1);
         break;
     }  
+
+    // print the dimensions of the input tensor
+    for (int i = 0; i < input_dims->size; i++) {
+        std::cout << "input_dims->data[" << i << "] = " << input_dims->data[i] << std::endl;
+    }
     std::cout << "Input tensor size in bytes (seems wrong): " << input_tensor_size_bytes << std::endl;
 
     // Get output tensor details
     int output =  interpreter_->outputs()[0];
     output_tensor_type = interpreter_->tensor(output)->type;
     output_tensor_size_bytes = interpreter_->tensor(output)->bytes;
-
-
+    output_dims = interpreter_->tensor(output)->dims;    
+    
     // Print output tensor details
     switch(output_tensor_type){
         case kTfLiteFloat32:
@@ -92,6 +104,11 @@ void AIInference::loadModel(){
         exit(1);
         break;
     }
+    // print the dimensions of the output tensor
+    for (int i = 0; i < output_dims->size; i++) {
+        std::cout << "output_dims->data[" << i << "] = " << output_dims->data[i] << std::endl;
+    }
+
     std::cout << "Output tensor size in bytes: " << output_tensor_size_bytes << std::endl;
 
 }
@@ -251,6 +268,49 @@ void AIInference::copyImageToInputTensor(){
     }
 }
 
+void AIInference::setInputTensorFromBaseConvResultArray(float* resultArray){
+    std::cout << "AIInference::setImageFromBaseConvResultArray(float* resultArray)" << std::endl;
+
+    // calculate the input tensor size from input_dims
+    int size = 1;
+    for (int i = 0; i < input_dims->size; i++) {
+        size *= input_dims->data[i];
+    }
+    std::cout << "size = " << size << std::endl;
+
+    switch(input_tensor_type){
+        case kTfLiteFloat32:
+        {
+            std::cout << "Copy image to input tensor of type float" << std::endl;
+            memcpy(interpreter_->typed_input_tensor<float>(0), resultArray, 
+            size*sizeof(float));
+        }
+        break;
+        case kTfLiteUInt8:
+        {
+        std::cout << "Copy image to input tensor of type unsigned int8" << std::endl;
+        std::cout << "Not implemented yet" << std::endl;
+        exit(1);
+        }
+        //memcpy(interpreter_->typed_input_tensor<uint8_t>(0), image_.data, input_tensor_size_bytes);
+        break;
+        case kTfLiteInt8:
+        {
+        std::cout << "Copy image to input tensor of type int8" << std::endl;
+        std::cout << "Not implemented yet" << std::endl;
+        exit(1);
+        }
+        //memcpy(interpreter_->typed_input_tensor<int8_t>(0), image_.data, input_tensor_size_bytes);
+        break;
+        default:
+        std::cerr << "Input_type: unknown" << std::endl;
+        exit(1);
+    }
+}
+
+
+
+
 // Write the runInference function
 void AIInference::runInference(){
     
@@ -260,16 +320,16 @@ void AIInference::runInference(){
     interpreter_->Invoke();
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
-    std::cout << "First inference duration: " << duration.count()*1000 << " ms" << std::endl;
+    std::cout << "Inference duration: " << duration.count()*1000 << " ms" << std::endl;
 
-    start = std::chrono::high_resolution_clock::now();
-    int repetitions = 10;
-    for(int i = 0; i < repetitions; i++){
-        interpreter_->Invoke();
-    }
-    end = std::chrono::high_resolution_clock::now();
-    duration = end - start;
-    std::cout << "Average inference duration ("<<repetitions<<" rep): " << duration.count()*1000/repetitions << " ms" << std::endl;
+    //start = std::chrono::high_resolution_clock::now();
+    //int repetitions = 10;
+    //for(int i = 0; i < repetitions; i++){
+     //   interpreter_->Invoke();
+    //}
+    //end = std::chrono::high_resolution_clock::now();
+    //duration = end - start;
+    //std::cout << "Average inference duration ("<<repetitions<<" rep): " << duration.count()*1000/repetitions << " ms" << std::endl;
 
 
 

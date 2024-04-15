@@ -33,11 +33,14 @@ class AIInferenceBaseConv: public AIInference{
     */
     private:
         float* resultArray = nullptr; // array to store the output of the model
-        void allocate_memory_for_result_array();
+        void allocateMemoryForResultArray();
+        
 
     public:
         AIInferenceBaseConv(std::string model_file);
         ~AIInferenceBaseConv();
+        void copyResultTensorToResultArray();
+        float* getResultArray();
 
 };
 
