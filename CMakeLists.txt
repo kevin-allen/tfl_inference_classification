@@ -49,9 +49,23 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(inference_classification
   inference_classification.cc
   AIInference.cc
+  AIInferenceClassification.cc
 )
 
+add_executable(inference_base_conv
+  inference_base_conv.cc
+  AIInference.cc
+  AIInferenceBaseConv.cc
+)
+
+
+
+
 target_link_libraries(inference_classification
+  tensorflow-lite
+  ${OpenCV_LIBS} 
+  )
+target_link_libraries(inference_base_conv
   tensorflow-lite
   ${OpenCV_LIBS} 
   )

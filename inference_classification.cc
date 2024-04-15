@@ -1,12 +1,15 @@
 #include <cstdio>
 #include "opencv2/opencv.hpp"
 #include  <filesystem>
-#include "AIInference.h"
+#include "AIInferenceClassification.h"
 #include <string>
 
 /*
-./inference_classification /tmp/mobilenet_v1_1.0_224.tflite ~/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp  -l /tmp/labels.txt 
-See https://github.com/kevin-allen/tfl_inference_classification/blob/main/README.md for more information
+./inference_classification /tmp/mobilenet_v1_1.0_224.tflite ~/repo/tensorflow/tensorflow/lite/examples/label_image/testdata/grace_hopper.bmp  -l /tmp/labels.txt -n 
+or
+ ./inference_classification ../python/resnet50_model.tflite ../data/cat.jpg  -l ../python/imagenet_labels.txt 
+
+ See https://github.com/kevin-allen/tfl_inference_classification/blob/main/README.md for more information
 */
   
 
@@ -22,13 +25,17 @@ int main(int argc, char* argv[]) {
   int non_opt_arguments; // given by the user
   const char* prog_name=argv[0];
   bool with_l_opt=false;
+  bool with_n_opt=false;
   std::string label_file;
 
   int opt;
-  while ((opt=getopt(argc, argv, "l:")) != -1)
+  while ((opt=getopt(argc, argv, "nl:")) != -1)
     {
       switch (opt)
 	    {
+        case 'n':
+          with_n_opt=true;
+          break;
         case 'l':
           label_file=optarg;
           with_l_opt=true;
@@ -60,16 +67,21 @@ int main(int argc, char* argv[]) {
 
 
   // create an instance of AIInference
-  AIInference ai_inference(model_file); // create an instance of AIInference and load the model into memory
-  ai_inference.set_labels(label_file);
-  ai_inference.loadImage(image_file);
-  ai_inference.preprocessImage();
-  ai_inference.normalizeImage();
-  ai_inference.copyImageToInputTensor();
+  AIInferenceClassification ai_classification(model_file); // create an instance of AIInference and load the model into memory
+  if (with_l_opt){
+    ai_classification.setLabels(label_file);
+  }
+  ai_classification.loadImage(image_file);
+  ai_classification.preprocessImage();
+  if (with_n_opt){
+  ai_classification.normalizeImage();
+  }
+  ai_classification.copyImageToInputTensor();
 
-  ai_inference.runInference();
-  ai_inference.copyResultTensorToResultArray();
-  ai_inference.getTopResults();
-  ai_inference.printTopResults();
+  ai_classification.runInference();
+  ai_classification.copyResultTensorToResultArray();
+  ai_classification.getTopResults();
+  ai_classification.printTopResults();
   return 0;
 }
+
