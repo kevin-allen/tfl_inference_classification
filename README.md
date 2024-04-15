@@ -84,6 +84,7 @@ cd ~/repo/tfl_inference_classification/build
 
 ### Main programs
 
+
 #### classifiy_image
 
 You can use `classify_image` to run a model doing classification. There is a python equivalent to compare output of c++ and python code.
@@ -91,5 +92,4 @@ You can use `classify_image` to run a model doing classification. There is a pyt
 #### convolution_base_model
 
 This programs takes a convolutional netwok without its classifying head. This can be quatize to in8.
-
 
