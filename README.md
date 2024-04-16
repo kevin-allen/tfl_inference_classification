@@ -1,5 +1,7 @@
 # tfl_inference_classification
 
+DEPRECIATED, ACTIVE REPOSITORY MOVED TO DKFZ Gitlab.
+
 This provides code performing inference and GradCam using the TensorFlow Lite C++ API. 
 
 Most of the example programs take a model and image as arguments.
